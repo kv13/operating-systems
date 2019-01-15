@@ -1,0 +1,32 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+void call_parse(char *cmd,char **store);
+int main(){
+	char* command;
+	char** array;
+	array=(char **)malloc(sizeof(char *));
+	command=(char *)malloc(512*sizeof(char));// check if there is no space 
+	int i=0;
+	for(;;){
+		printf("KonstantinosVergopoulos_8508>");
+		fgets(command,sizeof(command),stdin);
+		call_parse(command,array);
+		printf("edw epistrefei ??");
+		}
+	free(command);
+	return 0;
+}
+void call_parse(char *cmd,char **store){
+	char *token;
+	token=strtok(cmd," ");
+	while(token!=NULL){
+		printf("%s",token);
+		token=strtok(NULL," ");
+	}
+	printf("%s",*store);
+	return ;
+}
+
