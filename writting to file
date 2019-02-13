@@ -1,0 +1,87 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <string.h>
+//ulopoihsh ths > < >>
+void Callme(char* line,char** args);
+int call_find(char* line);
+int call_write_read(int x,char* line,char** args);
+void main(){
+	int result;
+	int x;
+	char line[513];
+	char* args[64];
+	for(;;){
+		printf("VERGO:");
+		fgets(line,512,stdin);
+		x=call_find(line);
+		if(x!=0){
+			result=call_write_read(x,line,args);
+		}
+	}
+}
+
+
+int call_find(char* line){
+	int x=0;
+	for(int i=0;i<513;i++){
+		if(line[i]=='>' && line[i+1]!='>'){
+			x=1;
+			break;
+		}
+		else if (line[i]=='>' && line[i+1]=='>'){
+			x=2;
+			break;
+		}
+		else if(line[i]=='<'){
+			return 3;
+		}
+	}
+	return x;
+}
+int call_write_read(int x,char* line,char** args){
+	char* token;
+	int counter=0;
+	char*  args2[64];
+	int status;
+	if(x==1 || x==2){
+		token=strtok(line,">>");
+		while(token!=NULL){
+			args[counter]=token;
+			token=strtok(NULL,">> ");
+			counter++;
+		}
+		printf("%s \n",args[0]);
+		printf("%s",args[1]);
+		Callme(args[0],args2);
+		FILE* fp;
+		if(x==1)fp=fopen(args[1],"w");
+		if(x==2)fp=fopen(args[1],"a");
+		if(fp==NULL){
+			printf("cannot open the file ");
+			exit(1);
+		}
+		pid_t pid=fork();
+		if (pid<0)exit(1);
+		else if(pid==0){
+			dup2(fileno(fp),fileno(stdout));//why do you use fileno???
+			execvp(args2[0],args2);
+			exit(1);
+		}
+		else {
+			wait(&status);
+		}
+		fclose(fp);
+	}
+}
+void Callme(char* line,char** args2){
+	char* token2;
+	int i=0;
+	token2=strtok(line," \n\t\r");
+	while(token2!=NULL){
+		args2[i]=token2;
+		i++;
+		token2=strtok(NULL," \n'\t\r");
+	}
+}
