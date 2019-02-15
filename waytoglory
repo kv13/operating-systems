@@ -1,0 +1,164 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <string.h>
+#include <unistd.h>
+void call_substring(char* line,int start,int end,char* substring);
+void call_batch_or_interactive(int x,char** file);
+void call_interactive();
+void call_batch(char** file);
+void call_check_and_split(char* line,char** args);
+void Callme(char* str,char** args);
+void CallExecution(char ** args,int* check,char symbol);
+
+
+void main(int argc,char** argv){
+	call_batch_or_interactive(argc,argv);
+}
+
+
+
+void call_batch_or_interactive(int x,char** file){
+	if(x==1){
+		call_interactive();
+	}
+	else if (x>1){
+		call_batch(file);
+	}
+}
+
+
+
+void call_interactive(){
+	char* args[64];
+	char line[513];
+	for(;;){
+		printf("VERGOPOULOS_8508");
+		fgets(line,512,stdin);
+		call_check_and_split(line,args);
+	}
+}
+
+
+void call_batch(char** file){
+	printf("inside the batch");
+}
+
+
+
+void call_check_and_split(char* line,char** args){
+	int i;
+	int start=0;
+	int end=0;
+	int* check;
+	check=(int *)malloc(sizeof(int));
+	if(check==NULL){
+		printf("cannot malloc sorry ");
+		exit(1);
+	}
+	*(check)=1;
+	char substring[513];
+	char symbol;
+	if(strstr(line,">")==NULL && strstr(line,";")==NULL && strstr(line,"&")==NULL && strstr(line,"<")==NULL){
+		symbol='\0';
+		Callme(line,args);
+		CallExecution(args,check,symbol);
+	}
+	else{
+		for(int i=0;i<513;i++){
+			if(line[i]==';'){
+				symbol=';';
+				end=i-1;
+				call_substring(line,start,end,substring);
+				printf("%s\n",substring);
+				Callme(substring,args);
+				CallExecution(args,check,symbol);
+				start=i+1;
+			}
+			else if(line[i]=='&' && line[i+1]=='&'){
+				symbol='&';
+				end=i-1;
+				call_substring(line,start,end,substring);
+				start=i+2;
+				Callme(substring,args);
+				CallExecution(args,check,symbol);
+				if(*(check)==0)return;
+			}
+			//today was a good day .Tomorrow auto pou exw na kanw einai ta > >> < auta tha ta kanw ws eksis
+			//mesa stis if tha trexw mia  for gia na vriskw to onoma tou arxeiou kai tha kanw mia CallExecution2 ektos kai 
+			//xrisimopoihsw ta sumvola ....maybe the second  its better 
+			else if(line[i]=='>' && line[i+1]!='>'){
+				end=i-1;
+				call_substring(line,start,end,substring);
+				start=i+1;
+				printf("%s\n",substring);
+			}
+			else if(line[i]=='>' && line[i+1]=='>'){
+				end=i-1;
+				call_substring(line,start,end,substring);
+				start=i+2;
+				i++;
+				printf("%s\n",substring);
+			}
+			else if(line[i]=='<'){
+				end=i-1;
+				call_substring(line,start,end,substring);
+				start=i+1;
+				printf("%s\n",substring);
+			}
+		}	
+		end=512;
+		call_substring(line,start,end,substring);
+		symbol='\0';
+		printf("%s",substring);
+		Callme(substring,args);
+		CallExecution(args,check,symbol);
+	}
+}
+
+
+
+void call_substring(char *line,int start,int end,char* substring){
+	int i;
+	for(i=start;i<end+1;i++){
+		substring[i-start]=line[i];
+	}
+	substring[end-start+1]='\0';
+}
+
+
+void Callme(char* str,char** args){
+	int i=0;
+	char* token;
+	token=strtok(str," \n\t\r");
+	while(token!=NULL){
+		args[i]=token;
+		//printf("%s",args[i]);
+		i++;
+		token=strtok(NULL," \n\t\r");
+	}
+	args[i]=NULL;
+}
+
+
+
+void CallExecution(char** args,int* check,char symbol){
+	pid_t pid;
+	int status;
+	*(check)=1;
+	pid=fork();
+	if(pid<0){
+		printf("CANNOT FORK SORRY \n");
+		exit(1);
+	}
+	else if (pid==0){
+		if(strcmp(args[0],"quit")==0 && args[1]==NULL)kill(pid,SIGKILL);//maybe i have to make it better
+		execvp(args[0],args);
+		printf("COMMAND NOT FOUND ...TRY AGAIN\n");
+		*(check)=0;
+		//exit(EXIT_FAILURE);
+	}
+	else {
+		wait(&status);
+	}
+}
